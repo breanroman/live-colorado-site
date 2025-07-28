@@ -1,0 +1,28 @@
+```yaml
+name: Scheduled Content Refresh
+
+on:
+  schedule:
+    # Every 4 months approximation: Jan 1, May 1, Sept 1 at 00:00 UTC
+    - cron: '0 0 1 1,5,9 *'
+  workflow_dispatch:  # allows you to run it manually too
+
+jobs:
+  refresh-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Notify Admin
+        run: |
+          echo "Time for a seasonal content refresh!" > refresh_reminder.txt
+          echo "Please review new community activities and update the listings." >> refresh_reminder.txt
+
+      - name: Commit reminder (optional)
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add refresh_reminder.txt
+          git commit -m "Automated content refresh reminder"
+          git push
