@@ -1,48 +1,49 @@
 name: Scheduled Content Refresh
 
 on:
-  Schedule:
+  schedule:
+    # Every 4 months approximation: Jan 1, May 1, Sept 1 at 00:00 UTC
     - cron: '0 0 1 1,5,9 *'
-  workflow_dispatch:
+  workflow_dispatch:  # allows you to run it manually too
 
-  jobs:
-    Refresh:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Repo
-          uses: actions/checout@v4
+jobs:
+  refresh-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-        - name: Create GitHub Issue
-          uses: actions/github-script@v7
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN}}
-            script: |
-              const title = "Quarterly Content Refresh Reminder";
-              const body = [
-                "It's time to refresh your website listings and activity content!",
-                "",
-                "Suggested tasks:",
-                "- Add new free activities and local resouces",
-                "- Review recent community submissions",
-                "- Update ZIP-code based activity listings",
-                "- Check external APIs for any content pulls",
-                "",
-                "This is an automated reminder generated every 4 months."
-              ].join('\n');
+      - name: Create GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = "Quarterly Content Refresh Reminder";
+            const body = [
+              “It's time to refresh your website listings and activity content!”,
+              “”,
+              “Suggested tasks:”,
+              “- Add new free activities and local resources”,
+              “- Review recent community submissions”,
+              “- Update ZIP-code based activity listings”,
+              “- Check external APIs for any content pulls”,
+              “”,
+              “This is an automated reminder generated every 4 months.”
+            ].join(‘\n’);
 
-              const {data: issues } = await github.rest.issues.listForRepo({
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const existing = issues.find(issue => issue.title === issueTitle);
+            if (!existing) {
+              await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                state: 'open'
+                title: issueTitle,
+                body: issueBody
               });
-
-              const existing = issues.find(issues => issue.title === title);
-
-              if (!existing) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title,
-                  body
-                });
-              }
+              
+             }
