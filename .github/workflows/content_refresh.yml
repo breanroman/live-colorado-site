@@ -3,7 +3,7 @@ name: Scheduled Content Refresh
 on:
   Schedule:
     - cron: '0 0 1 1,5,9 *'
-  workflow_dispatch
+  workflow_dispatch:
 
   jobs:
     Refresh:
